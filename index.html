@@ -1500,7 +1500,7 @@
         statusEl.textContent = "📡 Sending via Telegram...";
         statusEl.className = "status warning";
 
-        const backendUrl = "https://safety-alert-5ut3.onrender.com/api/send-alert";
+        const backendUrl = "https://safety-alert-server.onrender.com/api/send-alert";
         const contactData = telegramContacts.map((c) => ({
           name: c.name,
           chatId: c.chatId.trim(),
