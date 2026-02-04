@@ -1274,7 +1274,7 @@
       }
 
       function saveContacts() {
-        fetch(`${SERVER_URL}/api/contacts`, {
+        fetch("https://safety-alert-server.onrender.com/api/contacts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contacts }),
@@ -1415,7 +1415,7 @@
         timerDuration = (h * 3600 + m * 60 + s) * 1000;
 
         // Save to server
-        fetch(`${SERVER_URL}/api/timer-duration`, {
+        fetch("https://safety-alert-server.onrender.com/api/timer-duration", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ hours: h, minutes: m, seconds: s }),
@@ -1591,7 +1591,7 @@
       }
 
       function loadDeadline() {
-        fetch(`${SERVER_URL}/api/timer`)
+        fetch("https://safety-alert-server.onrender.com/api/timer")
           .then((res) => res.json())
           .then((data) => {
             deadline = data.deadline;
@@ -1601,7 +1601,7 @@
             if (!deadline) {
               resetTimer();
             } else {
-              // Start local countdown display (server handles actual alerts)
+              // Start local countdown display
               startTimer();
             }
           })
@@ -1619,7 +1619,7 @@
         const resetBy = signatureInput.value.trim() || "Anonymous";
         const duration = timerDuration;
 
-        fetch(`${SERVER_URL}/api/reset-timer`, {
+        fetch("https://safety-alert-server.onrender.com/api/reset-timer", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ duration, resetBy }),
@@ -1630,7 +1630,7 @@
             statusEl.textContent = `Timer reset! Next check-in due in ${formatTo2Digits(timerHours)}h ${formatTo2Digits(timerMinutes)}m ${formatTo2Digits(timerSeconds)}s`;
             statusEl.className = "status safe";
 
-            // Update local display (but server is source of truth)
+            // Update local display
             deadline = data.deadline;
             saveDeadline();
             updateTimerDisplay();
