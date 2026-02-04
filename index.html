@@ -1,0 +1,1720 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="icon.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script>
+      // Server URL - change this when you deploy
+      const SERVER_URL = "http://localhost:3000"; // or your deployed URL
+    </script>
+    <title>Am Alive</title>
+    <style>
+      :root {
+        --green: #078930;
+        --yellow: #fcdd09;
+        --red: #da121a;
+        --dark-green: #045522;
+        --dark-red: #9e0d13;
+        --gold: #d4af37;
+        --coffee-brown: #6f4e37;
+        --light: #f8f9fa;
+        --dark: #1a1a1a;
+        --card-bg: rgba(26, 35, 26, 0.95);
+        --blue: #3b82f6;
+        --purple: #8b5cf6;
+        --telegram-blue: #29a8e0;
+        --orange: #f97316;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      body {
+        color: var(--light);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow-x: hidden;
+        background: linear-gradient(135deg, #0f172a 0%, #045522 100%);
+      }
+      .logo {
+        width: 80px;
+        height: 80px;
+        margin: 15px 15px;
+      }
+      .container {
+        width: 100%;
+        max-width: 520px;
+        background: var(--card-bg);
+        overflow: hidden;
+        position: relative;
+        box-shadow:
+          0 10px 30px rgba(0, 0, 0, 0.7),
+          0 0 25px rgba(252, 221, 09, 0.25);
+      }
+      .header {
+        background: rgba(4, 85, 34, 0.9);
+        padding: 25px 20px;
+        text-align: center;
+        border-bottom: 3px solid var(--yellow);
+        position: relative;
+      }
+      .header::before {
+        position: absolute;
+        font-size: 120px;
+        opacity: 0.06;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .header h1 {
+        font-size: 2.3rem;
+        margin-bottom: 8px;
+        background: linear-gradient(90deg, var(--yellow), #ffffff, var(--red));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+      }
+      .header p {
+        color: rgba(241, 245, 249, 0.92);
+        font-size: 1.15rem;
+        margin-top: 10px;
+        line-height: 1.5;
+      }
+      .timer-container {
+        padding: 28px 25px;
+        text-align: center;
+        background: rgba(15, 23, 15, 0.9);
+      }
+      .timer-display {
+        font-size: 4.8rem;
+        font-weight: 800;
+        margin: 15px 0;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.05em;
+        text-shadow:
+          0 0 15px rgba(252, 221, 9, 0.7),
+          0 5px 20px rgba(0, 0, 0, 0.8);
+        color: white;
+        font-family: "Courier New", monospace;
+      }
+      .timer-label {
+        font-size: 1.45rem;
+        color: #cbd5e1;
+        margin-bottom: 22px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+      .timer-label::before,
+      .timer-label::after {
+        content: "•";
+        color: var(--yellow);
+        font-size: 2rem;
+        line-height: 0.5;
+      }
+      .status {
+        padding: 14px;
+        border-radius: 20px;
+        margin: 22px 0 18px;
+        font-weight: 700;
+        font-size: 1.25rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .status::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        z-index: -1;
+        animation: shine 3s ease-in-out infinite;
+      }
+      @keyframes shine {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+      .status.safe {
+        background: rgba(7, 137, 48, 0.25);
+        color: #34d399;
+        border-image: linear-gradient(90deg, var(--green), rgba(7, 137, 48, 0.5)) 1;
+      }
+      .status.warning {
+        background: rgba(252, 221, 9, 0.15);
+        color: #fbbf24;
+        border-image: linear-gradient(90deg, var(--yellow), rgba(252, 221, 9, 0.5)) 1;
+      }
+      .status.critical {
+        background: rgba(218, 18, 26, 0.25);
+        color: #f87171;
+        border-image: linear-gradient(90deg, var(--red), rgba(218, 18, 26, 0.5)) 1;
+        animation: pulse-critical 1.8s infinite;
+      }
+      @keyframes pulse-critical {
+        0% {
+          box-shadow: 0 0 0 0 rgba(218, 18, 26, 0.4);
+        }
+        70% {
+          box-shadow: 0 0 0 14px rgba(218, 18, 26, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(218, 18, 26, 0);
+        }
+      }
+      .progress-container {
+        width: 100%;
+        height: 12px;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 20px 0 25px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--green), var(--yellow), var(--red));
+        border-radius: 6px;
+        transition: width 0.6s ease;
+        position: relative;
+      }
+      .progress-bar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 4px;
+        background: rgba(255, 255, 255, 0.7);
+        box-shadow: 0 0 8px white;
+      }
+      .reset-btn {
+        background: linear-gradient(145deg, var(--green), #067a2c);
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 22px;
+        font-size: 1.65rem;
+        font-weight: 800;
+        border-radius: 24px;
+        cursor: pointer;
+        transition: all 0.35s ease;
+        box-shadow:
+          0 8px 20px rgba(7, 137, 48, 0.45),
+          inset 0 -4px 10px rgba(0, 0, 0, 0.3);
+        margin: 15px 0 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        letter-spacing: 0.5px;
+      }
+      .reset-btn:hover {
+        transform: translateY(-3px);
+        box-shadow:
+          0 12px 25px rgba(7, 137, 48, 0.65),
+          inset 0 -4px 12px rgba(0, 0, 0, 0.4);
+      }
+      .reset-btn:active {
+        transform: translateY(2px);
+        box-shadow:
+          0 4px 15px rgba(7, 137, 48, 0.5),
+          inset 0 -2px 8px rgba(0, 0, 0, 0.4);
+      }
+      .reset-btn:disabled {
+        opacity: 0.85;
+        cursor: not-allowed;
+        transform: none;
+        background: linear-gradient(145deg, #64748b, #475569);
+      }
+      .relatives-container {
+        padding: 28px 25px;
+        background: rgba(30, 45, 30, 0.92);
+        border-top: 2px solid var(--yellow);
+        position: relative;
+      }
+      .relatives-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 22px;
+      }
+      .relatives-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--yellow);
+        font-size: 1.45rem;
+        font-weight: 700;
+      }
+      .relatives-title svg {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: var(--yellow);
+        stroke-width: 1.8;
+      }
+      .add-contact-btn {
+        background: rgba(7, 137, 48, 0.2);
+        color: var(--yellow);
+        border: 1px solid var(--green);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 3px;
+        font-weight: bold;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .add-contact-btn:hover {
+        background: rgba(252, 221, 9, 0.25);
+        transform: scale(1.1);
+      }
+      .relatives-list {
+        list-style: none;
+        display: grid;
+        gap: 16px;
+      }
+      .relative-item {
+        display: flex;
+        align-items: center;
+        padding: 18px;
+        background: rgba(15, 35, 15, 0.7);
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--green);
+        position: relative;
+      }
+      .relative-item:hover {
+        background: rgba(7, 137, 48, 0.12);
+        transform: translateX(4px);
+        border-left: 4px solid var(--yellow);
+      }
+      .relative-details {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+      }
+      .relative-icon {
+        width: 52px;
+        height: 52px;
+        margin-right: 16px;
+        background: linear-gradient(135deg, var(--green), var(--yellow));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.9rem;
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      .relative-name {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
+      }
+      .footer {
+        text-align: center;
+        padding: 25px;
+        color: #94a3b8;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        border-top: 2px solid rgba(252, 221, 9, 0.3);
+        margin-top: 8px;
+        background: rgba(15, 30, 15, 0.8);
+      }
+      .footer strong {
+        color: var(--yellow);
+      }
+      .contact-form {
+        background: rgba(20, 35, 20, 0.95);
+        border-radius: 20px;
+        padding: 25px;
+      }
+      .form-title {
+        text-align: center;
+        font-size: 1.5rem;
+        color: var(--yellow);
+        margin-bottom: 20px;
+        font-weight: 700;
+      }
+      .form-group {
+        margin-bottom: 18px;
+        text-align: left;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--light);
+        font-weight: 500;
+      }
+      .form-control {
+        width: 100%;
+        padding: 14px;
+        border-radius: 14px;
+        border: 2px solid rgba(252, 221, 9, 0.3);
+        background: rgba(15, 30, 15, 0.8);
+        color: white;
+        font-size: 1.1rem;
+        transition: border-color 0.3s;
+      }
+      .form-control:focus {
+        outline: none;
+        border-color: var(--yellow);
+        box-shadow: 0 0 0 3px rgba(252, 221, 9, 0.2);
+      }
+      .form-row {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+      }
+      .form-btn {
+        flex: 1;
+        padding: 16px;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .save-btn {
+        background: linear-gradient(145deg, var(--green), #067a2c);
+        color: white;
+        border: none;
+      }
+      .save-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(7, 137, 48, 0.5);
+      }
+      .cancel-btn {
+        background: rgba(100, 116, 139, 0.2);
+        color: #cbd5e1;
+        border: 1px solid #475569;
+      }
+      .cancel-btn:hover {
+        background: rgba(74, 85, 104, 0.3);
+      }
+      .remove-contact {
+        background: rgba(218, 18, 26, 0.2);
+        color: var(--red);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        font-size: 1.4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding-bottom: 3px;
+      }
+      .remove-contact:hover {
+        background: rgba(218, 18, 26, 0.4);
+        transform: scale(1.1);
+      }
+      .auto-send-editor-container {
+        padding: 28px 25px;
+        background: rgba(45, 30, 20, 0.92);
+        border-top: 2px solid var(--orange);
+        position: relative;
+        margin-top: 20px;
+        border-radius: 20px;
+      }
+      .auto-send-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--orange);
+        font-size: 1.45rem;
+        font-weight: 700;
+      }
+      .auto-send-title svg {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: var(--orange);
+        stroke-width: 1.8;
+      }
+      .auto-send-description {
+        color: #fbbf24;
+        font-size: 0.95rem;
+        margin-top: 8px;
+        line-height: 1.5;
+      }
+      .auto-send-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 12px;
+        font-size: 0.95rem;
+        color: #94a3b8;
+      }
+      .edit-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: slategrey;
+        color: #fff;
+        border: none;
+      }
+      .signature-container {
+        padding: 28px 25px;
+        background: rgba(35, 25, 45, 0.92);
+        border-top: 2px solid var(--purple);
+        position: relative;
+        margin-top: 20px;
+        border-radius: 20px;
+      }
+      .signature-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--purple);
+        font-size: 1.45rem;
+        font-weight: 700;
+      }
+      .signature-title svg {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: var(--purple);
+        stroke-width: 1.8;
+      }
+      .signature-description {
+        color: #e8d5ff;
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+      .signature-input {
+        width: 100%;
+        padding: 14px;
+        border-radius: 14px;
+        border: 2px solid rgba(139, 92, 246, 0.3);
+        background: rgba(15, 30, 15, 0.8);
+        color: white;
+        font-size: 1.1rem;
+        transition: border-color 0.3s;
+      }
+      .signature-input:focus {
+        outline: none;
+        border-color: var(--purple);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+      }
+      .timer-settings-container {
+        padding: 28px 25px;
+        background: rgba(25, 35, 45, 0.92);
+        border-top: 2px solid var(--blue);
+        position: relative;
+        margin-top: 20px;
+        border-radius: 20px;
+      }
+      .timer-settings-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--blue);
+        font-size: 1.45rem;
+        font-weight: 700;
+      }
+      .timer-settings-title svg {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: var(--blue);
+        stroke-width: 1.8;
+      }
+      .timer-inputs {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        justify-content: center;
+      }
+      .timer-input-group {
+        text-align: center;
+      }
+      .timer-input-group input {
+        width: 70px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 2px solid rgba(59, 130, 246, 0.3);
+        background: rgba(15, 30, 15, 0.8);
+        color: white;
+        font-size: 1.3rem;
+        text-align: center;
+        font-family: "Courier New", monospace;
+        font-weight: bold;
+      }
+      .timer-input-group input:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      }
+      .timer-input-group label {
+        display: block;
+        margin-top: 8px;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+      .save-timer-btn {
+        background: linear-gradient(145deg, var(--blue), #2563eb);
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 16px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        border-radius: 16px;
+        cursor: pointer;
+        margin-top: 15px;
+        transition: all 0.3s;
+      }
+      .save-timer-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+      }
+      .send-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+      }
+      .send-modal-content {
+        background: var(--card-bg);
+        border-radius: 28px;
+        max-width: 500px;
+        width: 100%;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+        position: relative;
+        border: 3px solid var(--yellow);
+      }
+      .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(100, 116, 139, 0.3);
+        color: white;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+      }
+      .modal-close:hover {
+        background: rgba(218, 18, 26, 0.4);
+        transform: rotate(90deg);
+      }
+      .modal-title {
+        font-size: 1.8rem;
+        color: var(--yellow);
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      .modal-message-preview {
+        background: rgba(15, 30, 15, 0.9);
+        border-radius: 16px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid var(--blue);
+        font-size: 1.15rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+      }
+      .modal-contacts-list {
+        background: rgba(25, 40, 25, 0.8);
+        border-radius: 16px;
+        padding: 15px;
+        margin: 15px 0;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .modal-contact-item {
+        padding: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+      }
+      .modal-contact-item:last-child {
+        border-bottom: none;
+      }
+      .confirm-btn {
+        background: linear-gradient(145deg, var(--telegram-blue), #1e88a8);
+        color: white;
+        border: none;
+        width: 100%;
+        padding: 20px;
+        font-size: 1.4rem;
+        font-weight: 800;
+        border-radius: 20px;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      .confirm-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(41, 168, 224, 0.6);
+      }
+      .confirm-btn:active {
+        transform: translateY(2px);
+      }
+      /* Custom Alert and Confirm Modals */
+      .custom-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+        padding: 20px;
+      }
+      .custom-modal-content {
+        background: var(--card-bg);
+        border-radius: 24px;
+        max-width: 450px;
+        width: 100%;
+        padding: 35px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+        position: relative;
+        border: 3px solid var(--yellow);
+        text-align: center;
+      }
+      .custom-modal-icon {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+      }
+      .custom-modal-title {
+        font-size: 1.6rem;
+        color: var(--yellow);
+        margin-bottom: 15px;
+        font-weight: 700;
+      }
+      .custom-modal-message {
+        font-size: 1.15rem;
+        color: #cbd5e1;
+        line-height: 1.6;
+        margin-bottom: 25px;
+        min-height: 60px;
+      }
+      .custom-modal-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 10px;
+      }
+      .custom-modal-btn {
+        padding: 14px 30px;
+        border-radius: 16px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        flex: 1;
+      }
+      .custom-modal-btn-primary {
+        background: linear-gradient(145deg, var(--green), #067a2c);
+        color: white;
+      }
+      .custom-modal-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(7, 137, 48, 0.5);
+      }
+      .custom-modal-btn-secondary {
+        background: rgba(100, 116, 139, 0.3);
+        color: #cbd5e1;
+      }
+      .custom-modal-btn-secondary:hover {
+        background: rgba(74, 85, 104, 0.4);
+      }
+      .custom-modal-btn-danger {
+        background: linear-gradient(145deg, var(--red), #9e0d13);
+        color: white;
+      }
+      .custom-modal-btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(218, 18, 26, 0.5);
+      }
+      @media (max-width: 550px) {
+        .timer-display {
+          font-size: 3.6rem;
+        }
+        .header h1 {
+          font-size: 1.95rem;
+        }
+        .reset-btn {
+          padding: 20px;
+          font-size: 1.45rem;
+        }
+        .relative-name {
+          font-size: 1.35rem;
+        }
+        .form-btn {
+          width: 100%;
+        }
+        .timer-inputs {
+          flex-wrap: wrap;
+        }
+        .timer-input-group input {
+          width: 60px;
+          font-size: 1.1rem;
+        }
+        .custom-modal-content {
+          padding: 25px 20px;
+        }
+        .custom-modal-buttons {
+          flex-direction: column;
+        }
+        .custom-modal-btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="icon.png" alt="logo" class="logo" />
+        <h1>Safety Check-in</h1>
+        <p>Tap "I'm Alive!" within your set time to confirm your safety</p>
+        <p class="auto-send-badge">🤖 Auto-Send Enabled: Alerts sent automatically when timer expires</p>
+      </div>
+      <div class="timer-container">
+        <div class="status safe" id="status">All systems normal</div>
+        <div class="progress-container">
+          <div class="progress-bar" id="progress-bar" style="width: 100%"></div>
+        </div>
+        <div class="timer-label">Time Remaining</div>
+        <div class="timer-display" id="timer">00:00:00</div>
+        <button class="reset-btn" id="reset-btn">✅ I'm Alive!</button>
+      </div>
+      <div class="relatives-container">
+        <div class="relatives-header">
+          <div class="relatives-title">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Emergency Contacts
+          </div>
+          <button class="add-contact-btn" id="add-contact-btn">+</button>
+        </div>
+        <div class="contact-form collapsible-section" id="contact-form">
+          <div class="form-title">Add Emergency Contact</div>
+          <div class="form-group">
+            <label for="contact-name">Full Name</label>
+            <input type="text" id="contact-name" class="form-control" placeholder="E.g. Selam Abebe" />
+          </div>
+          <div class="form-group">
+            <label for="contact-chatid">Telegram Chat ID</label>
+            <input type="text" id="contact-chatid" class="form-control" placeholder="123456789 or -1001234567890" />
+          </div>
+          <div class="form-row">
+            <button class="form-btn save-btn" id="save-contact">Save Contact</button>
+            <button class="form-btn cancel-btn" id="cancel-contact">Cancel</button>
+          </div>
+        </div>
+        <ul class="relatives-list" id="contacts-list"></ul>
+
+        <div class="timer-settings-container">
+          <div class="relatives-header">
+            <div class="timer-settings-title">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              Custom Timer Settings
+            </div>
+            <button class="edit-btn" id="edit-timer-btn"><i class="fas fa-edit"></i></button>
+          </div>
+          <div class="timer-settings-content collapsible-section" id="timer-settings-content">
+            <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 15px; text-align: center">Set your preferred check-in interval (HH:MM:SS)</p>
+            <div class="timer-inputs">
+              <div class="timer-input-group">
+                <input type="text" id="timer-hours" maxlength="3" value="00" />
+                <label>Hours</label>
+              </div>
+              <div class="timer-input-group">
+                <input type="text" id="timer-minutes" maxlength="2" value="00" />
+                <label>Minutes</label>
+              </div>
+              <div class="timer-input-group">
+                <input type="text" id="timer-seconds" maxlength="2" value="15" />
+                <label>Seconds</label>
+              </div>
+            </div>
+            <button class="save-timer-btn" id="save-timer-btn"><i class="fas fa-save"></i> Save Timer Settings</button>
+          </div>
+        </div>
+
+        <div class="auto-send-editor-container">
+          <div class="relatives-header">
+            <div class="auto-send-title">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 8V4l8 8-8 8v-4H4V8h8z" />
+              </svg>
+              Custom Alert Message
+            </div>
+            <button class="edit-btn" id="edit-auto-send-btn"><i class="fas fa-edit"></i></button>
+          </div>
+          <div class="auto-send-content collapsible-section" id="auto-send-content">
+            <p class="auto-send-description">✍️ This message will be sent automatically when the timer expires</p>
+            <div class="contact-form">
+              <textarea class="form-control" id="auto-send-message" placeholder="Write your custom alert message here..." rows="5" style="min-height: 120px; resize: vertical">
+🚨 SAFETY CHECK-IN MISSED!
+ምናልባት ችግር አጋጥሞኝ ሊሆን ስለሚችል እባክዎን ደውለው ደኅንነቴን ያረጋግጡ፡፡</textarea
+              >
+              <div class="auto-send-stats">
+                <span id="auto-send-char-count">78 characters</span>
+                <span id="auto-send-word-count">11 words</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="signature-container">
+          <div class="relatives-header">
+            <div class="signature-title">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 22s-8-4-8-10V5l8-3 8 3v7c0 6-8 10-8 10z" />
+              </svg>
+              Message Signature
+            </div>
+            <button class="edit-btn" id="edit-signature-btn"><i class="fas fa-edit"></i></button>
+          </div>
+          <div class="signature-content collapsible-section" id="signature-content">
+            <p class="signature-description">✍️ This signature will be appended to all sent messages</p>
+            <div class="contact-form">
+              <input type="text" id="signature-input" class="signature-input" placeholder="Your signature (e.g., - John Doe)" value="Yonas Adane" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="send-modal" id="send-modal">
+        <div class="send-modal-content">
+          <button class="modal-close" id="modal-close">×</button>
+          <h3 class="modal-title" id="modal-title">Confirm Emergency Alert</h3>
+          <p style="text-align: center; color: #fbbf24; margin-bottom: 15px">This will send your safety message to all emergency contacts</p>
+          <div style="background: rgba(41, 168, 224, 0.15); padding: 15px; border-radius: 12px; margin: 15px 0">
+            <strong style="color: var(--telegram-blue); display: block; margin-bottom: 8px">Your Message:</strong>
+            <div class="modal-message-preview" id="modal-message-preview"></div>
+          </div>
+          <strong style="color: var(--yellow); display: block; margin: 15px 0 10px">Recipients:</strong>
+          <div class="modal-contacts-list" id="modal-contacts-list"></div>
+          <button class="confirm-btn" id="confirm-send">✈️ SEND VIA TELEGRAM</button>
+          <p style="text-align: center; color: #94a3b8; margin-top: 15px; font-size: 0.9rem">This action cannot be undone. Make sure this is a real emergency.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div class="custom-modal" id="alert-modal">
+      <div class="custom-modal-content">
+        <div class="custom-modal-icon">⚠️</div>
+        <h3 class="custom-modal-title" id="alert-modal-title">Alert</h3>
+        <p class="custom-modal-message" id="alert-modal-message"></p>
+        <div class="custom-modal-buttons">
+          <button class="custom-modal-btn custom-modal-btn-primary" id="alert-modal-ok">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div class="custom-modal" id="confirm-modal">
+      <div class="custom-modal-content">
+        <div class="custom-modal-icon">❓</div>
+        <h3 class="custom-modal-title" id="confirm-modal-title">Confirm</h3>
+        <p class="custom-modal-message" id="confirm-modal-message"></p>
+        <div class="custom-modal-buttons">
+          <button class="custom-modal-btn custom-modal-btn-secondary" id="confirm-modal-cancel">Cancel</button>
+          <button class="custom-modal-btn custom-modal-btn-primary" id="confirm-modal-ok">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Confirm Danger Modal -->
+    <div class="custom-modal" id="confirm-danger-modal">
+      <div class="custom-modal-content">
+        <div class="custom-modal-icon" style="color: var(--red)">⚠️</div>
+        <h3 class="custom-modal-title" id="confirm-danger-modal-title" style="color: var(--red)">Confirm Action</h3>
+        <p class="custom-modal-message" id="confirm-danger-modal-message"></p>
+        <div class="custom-modal-buttons">
+          <button class="custom-modal-btn custom-modal-btn-secondary" id="confirm-danger-modal-cancel">Cancel</button>
+          <button class="custom-modal-btn custom-modal-btn-danger" id="confirm-danger-modal-ok">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const timerDisplay = document.getElementById("timer");
+      const resetBtn = document.getElementById("reset-btn");
+      const statusEl = document.getElementById("status");
+      const progressBar = document.getElementById("progress-bar");
+      const contactsList = document.getElementById("contacts-list");
+      const contactForm = document.getElementById("contact-form");
+      const addContactBtn = document.getElementById("add-contact-btn");
+      const saveContactBtn = document.getElementById("save-contact");
+      const cancelContactBtn = document.getElementById("cancel-contact");
+      const contactNameInput = document.getElementById("contact-name");
+      const contactChatIdInput = document.getElementById("contact-chatid");
+      const autoSendMessageInput = document.getElementById("auto-send-message");
+      const autoSendCharCountEl = document.getElementById("auto-send-char-count");
+      const autoSendWordCountEl = document.getElementById("auto-send-word-count");
+      const signatureInput = document.getElementById("signature-input");
+      const timerHoursInput = document.getElementById("timer-hours");
+      const timerMinutesInput = document.getElementById("timer-minutes");
+      const timerSecondsInput = document.getElementById("timer-seconds");
+      const saveTimerBtn = document.getElementById("save-timer-btn");
+      const sendModal = document.getElementById("send-modal");
+      const modalCloseBtn = document.getElementById("modal-close");
+      const modalMessagePreview = document.getElementById("modal-message-preview");
+      const modalContactsList = document.getElementById("modal-contacts-list");
+      const confirmSendBtn = document.getElementById("confirm-send");
+      const editTimerBtn = document.getElementById("edit-timer-btn");
+      const timerSettingsContent = document.getElementById("timer-settings-content");
+      const editAutoSendBtn = document.getElementById("edit-auto-send-btn");
+      const autoSendContent = document.getElementById("auto-send-content");
+      const editSignatureBtn = document.getElementById("edit-signature-btn");
+      const signatureContent = document.getElementById("signature-content");
+
+      // Custom Modal Elements
+      const alertModal = document.getElementById("alert-modal");
+      const alertModalMessage = document.getElementById("alert-modal-message");
+      const alertModalOkBtn = document.getElementById("alert-modal-ok");
+      const confirmModal = document.getElementById("confirm-modal");
+      const confirmModalMessage = document.getElementById("confirm-modal-message");
+      const confirmModalOkBtn = document.getElementById("confirm-modal-ok");
+      const confirmModalCancelBtn = document.getElementById("confirm-modal-cancel");
+      const confirmDangerModal = document.getElementById("confirm-danger-modal");
+      const confirmDangerModalMessage = document.getElementById("confirm-danger-modal-message");
+      const confirmDangerModalOkBtn = document.getElementById("confirm-danger-modal-ok");
+      const confirmDangerModalCancelBtn = document.getElementById("confirm-danger-modal-cancel");
+
+      let deadline = 0;
+      let timerInterval = null;
+      let alertTriggered = false;
+      let alertSentForCurrentDeadline = false;
+      let contacts = [];
+      let autoSendEnabled = true;
+      let timerHours = 0;
+      let timerMinutes = 0;
+      let timerSeconds = 60;
+      let timerDuration = 0;
+      let confirmCallback = null;
+      let alertCallback = null;
+
+      // Custom Modal Functions
+      function showAlert(message, callback = null) {
+        alertModalMessage.textContent = message;
+        alertModal.style.display = "flex";
+        alertCallback = callback;
+      }
+
+      function hideAlertModal() {
+        alertModal.style.display = "none";
+        if (alertCallback && typeof alertCallback === "function") {
+          alertCallback();
+          alertCallback = null;
+        }
+      }
+
+      function showConfirm(message, onConfirm, onCancel = null) {
+        confirmModalMessage.textContent = message;
+        confirmModal.style.display = "flex";
+        confirmCallback = { onConfirm, onCancel };
+      }
+
+      function hideConfirmModal() {
+        confirmModal.style.display = "none";
+      }
+
+      function showConfirmDanger(message, onConfirm, onCancel = null) {
+        confirmDangerModalMessage.textContent = message;
+        confirmDangerModal.style.display = "flex";
+        confirmCallback = { onConfirm, onCancel };
+      }
+
+      function hideConfirmDangerModal() {
+        confirmDangerModal.style.display = "none";
+      }
+
+      function formatTo2Digits(value) {
+        return value.toString().padStart(2, "0");
+      }
+
+      function init() {
+        loadContacts();
+        renderContacts();
+        loadTimerSettings();
+        loadAutoSendMessage();
+        loadSignature();
+        loadDeadline();
+        startTimer();
+        updateAutoSendMessageStats();
+
+        contactForm.style.display = "none";
+        timerSettingsContent.style.display = "none";
+        autoSendContent.style.display = "none";
+        signatureContent.style.display = "none";
+
+        resetBtn.addEventListener("click", resetTimer);
+        addContactBtn.addEventListener("click", toggleContactForm);
+        saveContactBtn.addEventListener("click", saveContact);
+        cancelContactBtn.addEventListener("click", hideContactForm);
+        saveTimerBtn.addEventListener("click", saveTimerSettings);
+        modalCloseBtn.addEventListener("click", hideSendModal);
+        confirmSendBtn.addEventListener("click", sendEmergencyAlert);
+        editTimerBtn.addEventListener("click", toggleTimerSettings);
+        editAutoSendBtn.addEventListener("click", toggleAutoSendEditor);
+        editSignatureBtn.addEventListener("click", toggleSignatureEditor);
+
+        sendModal.addEventListener("click", (e) => {
+          if (e.target === sendModal) hideSendModal();
+        });
+
+        // Timer Editor Input Formatting
+        timerHoursInput.addEventListener("input", (e) => {
+          let value = e.target.value.replace(/[^0-9]/g, "");
+          if (value === "") {
+            e.target.value = "";
+            return;
+          }
+          let num = Math.min(parseInt(value) || 0, 99);
+          e.target.value = formatTo2Digits(num);
+        });
+        timerHoursInput.addEventListener("blur", (e) => {
+          let value = e.target.value.replace(/[^0-9]/g, "");
+          let num = value === "" ? 0 : Math.min(parseInt(value), 99);
+          e.target.value = formatTo2Digits(num);
+        });
+
+        timerMinutesInput.addEventListener("input", (e) => {
+          let value = e.target.value.replace(/[^0-9]/g, "");
+          if (value === "") return;
+          let num = parseInt(value) || 0;
+          if (num > 59) {
+            e.target.value = "59";
+          } else {
+            e.target.value = value; // Don't format yet, let user type
+          }
+        });
+
+        timerSecondsInput.addEventListener("input", (e) => {
+          let value = e.target.value.replace(/[^0-9]/g, "");
+          if (value === "") return;
+          let num = parseInt(value) || 0;
+          if (num > 59) {
+            e.target.value = "59";
+          } else {
+            e.target.value = value; // Don't format yet
+          }
+        });
+
+        timerMinutesInput.addEventListener("blur", (e) => {
+          let value = e.target.value.replace(/[^0-9]/g, "");
+          let num = value === "" ? 0 : Math.min(parseInt(value), 59);
+          e.target.value = formatTo2Digits(num);
+        });
+
+        timerSecondsInput.addEventListener("blur", (e) => {
+          let value = e.target.value.replace(/[^0-9]/g, "");
+          let num = value === "" ? 0 : Math.min(parseInt(value), 59);
+          e.target.value = formatTo2Digits(num);
+        });
+
+        // Custom modal listeners
+        alertModalOkBtn.addEventListener("click", hideAlertModal);
+        alertModal.addEventListener("click", (e) => {
+          if (e.target === alertModal) hideAlertModal();
+        });
+
+        confirmModalOkBtn.addEventListener("click", () => {
+          if (confirmCallback?.onConfirm) confirmCallback.onConfirm();
+          hideConfirmModal();
+          confirmCallback = null;
+        });
+        confirmModalCancelBtn.addEventListener("click", () => {
+          if (confirmCallback?.onCancel) confirmCallback.onCancel();
+          hideConfirmModal();
+          confirmCallback = null;
+        });
+        confirmModal.addEventListener("click", (e) => {
+          if (e.target === confirmModal) {
+            if (confirmCallback?.onCancel) confirmCallback.onCancel();
+            hideConfirmModal();
+            confirmCallback = null;
+          }
+        });
+
+        confirmDangerModalOkBtn.addEventListener("click", () => {
+          if (confirmCallback?.onConfirm) confirmCallback.onConfirm();
+          hideConfirmDangerModal();
+          confirmCallback = null;
+        });
+        confirmDangerModalCancelBtn.addEventListener("click", () => {
+          if (confirmCallback?.onCancel) confirmCallback.onCancel();
+          hideConfirmDangerModal();
+          confirmCallback = null;
+        });
+        confirmDangerModal.addEventListener("click", (e) => {
+          if (e.target === confirmDangerModal) {
+            if (confirmCallback?.onCancel) confirmCallback.onCancel();
+            hideConfirmDangerModal();
+            confirmCallback = null;
+          }
+        });
+      }
+
+      function toggleContactForm() {
+        contactForm.style.display === "none" || contactForm.style.display === "" ? showContactForm() : hideContactForm();
+      }
+
+      function showContactForm() {
+        contactForm.style.display = "block";
+        contactForm.classList.add("active");
+        contactNameInput.value = "";
+        contactChatIdInput.value = "";
+        contactNameInput.focus();
+      }
+
+      function hideContactForm() {
+        contactForm.style.display = "none";
+        contactForm.classList.remove("active");
+      }
+
+      function toggleTimerSettings() {
+        if (timerSettingsContent.style.display === "none" || timerSettingsContent.style.display === "") {
+          timerSettingsContent.style.display = "block";
+          timerSettingsContent.classList.add("active");
+          editTimerBtn.innerHTML = "<i class='fas fa-check'></i>";
+          loadTimerSettings();
+        } else {
+          timerSettingsContent.style.display = "none";
+          timerSettingsContent.classList.remove("active");
+          editTimerBtn.innerHTML = "<i class='fas fa-edit'></i>";
+        }
+      }
+
+      function toggleAutoSendEditor() {
+        if (autoSendContent.style.display === "none" || autoSendContent.style.display === "") {
+          autoSendContent.style.display = "block";
+          autoSendContent.classList.add("active");
+          editAutoSendBtn.innerHTML = "<i class='fas fa-check'></i>";
+        } else {
+          autoSendContent.style.display = "none";
+          autoSendContent.classList.remove("active");
+          editAutoSendBtn.innerHTML = "<i class='fas fa-edit'></i>";
+        }
+      }
+
+      function toggleSignatureEditor() {
+        if (signatureContent.style.display === "none" || signatureContent.style.display === "") {
+          signatureContent.style.display = "block";
+          signatureContent.classList.add("active");
+          editSignatureBtn.innerHTML = "<i class='fas fa-check'></i>";
+        } else {
+          signatureContent.style.display = "none";
+          signatureContent.classList.remove("active");
+          editSignatureBtn.innerHTML = "<i class='fas fa-edit'></i>";
+        }
+      }
+
+      function loadContacts() {
+        const saved = localStorage.getItem("emergency_contacts");
+        contacts = saved ? JSON.parse(saved) : [];
+        if (!saved) saveContacts();
+      }
+
+      function saveContacts() {
+        fetch(`${SERVER_URL}/api/contacts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contacts }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("✅ Contacts saved to server:", data);
+            localStorage.setItem("emergency_contacts", JSON.stringify(contacts));
+          })
+          .catch((err) => {
+            console.error("❌ Failed to save contacts:", err);
+            showAlert("Failed to sync contacts with server.");
+          });
+      }
+
+      function renderContacts() {
+        contactsList.innerHTML = "";
+        modalContactsList.innerHTML = "";
+        contacts.forEach((contact, index) => {
+          const hasTelegram = contact.chatId && contact.chatId.trim() !== "";
+          const li = document.createElement("li");
+          li.className = "relative-item";
+          li.innerHTML = `
+            <div class="relative-details">
+              <div class="relative-icon">${contact.name.charAt(0)}</div>
+              <div class="relative-info" style="margin-top:-10px">
+                <div class="relative-name">${contact.name}</div>
+                <div style="color: #5eead4;">
+                  <span style="color:white;background:indigo;padding:0 3px 2px 3px;border-radius:5px;">Telegram ID</span>
+                  ${contact.chatId}
+                </div>
+              </div>
+            </div>
+            <button class="remove-contact" data-index="${index}">×</button>
+          `;
+          contactsList.appendChild(li);
+
+          const modalLi = document.createElement("div");
+          modalLi.className = "modal-contact-item";
+          modalLi.innerHTML = `
+            <span>${contact.name} ${hasTelegram ? "✈️" : "📱"}</span>
+            <span style="color: #60a5fa; font-family: monospace;">
+              ${hasTelegram ? " | Chat ID: " + contact.chatId : ""}
+            </span>
+          `;
+          modalContactsList.appendChild(modalLi);
+        });
+
+        document.querySelectorAll(".remove-contact").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const index = e.target.getAttribute("data-index");
+            showConfirmDanger("Are you sure you want to remove this contact?", () => removeContact(index));
+          });
+        });
+      }
+
+      function saveContact() {
+        const name = contactNameInput.value.trim();
+        const chatId = contactChatIdInput.value.trim();
+
+        if (!name || name.length < 2) {
+          showAlert("Please enter a valid name (at least 2 characters)");
+          return;
+        }
+        if (chatId && !/^-?\d+$/.test(chatId)) {
+          showAlert("Telegram Chat ID must be numbers only!");
+          return;
+        }
+
+        const contact = { name };
+        if (chatId) contact.chatId = chatId;
+
+        contacts.push(contact);
+        saveContacts();
+        renderContacts();
+        hideContactForm();
+
+        let msg = `Contact "${name}" added successfully!`;
+        msg += chatId ? "\n✅ Telegram enabled" : "\n⚠️ No Telegram Chat ID (SMS only)";
+        statusEl.textContent = msg;
+        statusEl.className = "status safe";
+
+        setTimeout(() => {
+          if (!alertTriggered) updateStatusBasedOnTime();
+        }, 3000);
+      }
+
+      function removeContact(index) {
+        if (contacts.length <= 1) {
+          showAlert("You must have at least one emergency contact!");
+          return;
+        }
+        const removed = contacts.splice(index, 1)[0];
+        saveContacts();
+        renderContacts();
+        statusEl.textContent = `Contact "${removed.name}" removed`;
+        statusEl.className = "status warning";
+        setTimeout(() => {
+          if (!alertTriggered) updateStatusBasedOnTime();
+        }, 3000);
+      }
+
+      function loadTimerSettings() {
+        const h = localStorage.getItem("timer_hours");
+        const m = localStorage.getItem("timer_minutes");
+        const s = localStorage.getItem("timer_seconds");
+
+        if (h !== null && m !== null && s !== null) {
+          timerHours = parseInt(h);
+          timerMinutes = parseInt(m);
+          timerSeconds = parseInt(s);
+        } else {
+          timerHours = 0;
+          timerMinutes = 0;
+          timerSeconds = 60;
+        }
+
+        timerHoursInput.value = formatTo2Digits(timerHours);
+        timerMinutesInput.value = formatTo2Digits(timerMinutes);
+        timerSecondsInput.value = formatTo2Digits(timerSeconds);
+
+        timerDuration = (timerHours * 3600 + timerMinutes * 60 + timerSeconds) * 1000;
+      }
+
+      function saveTimerSettings() {
+        const h = parseInt(timerHoursInput.value) || 0;
+        const m = parseInt(timerMinutesInput.value) || 0;
+        const s = parseInt(timerSecondsInput.value) || 0;
+
+        if (h === 0 && m === 0 && s === 0) {
+          showAlert("Timer duration must be at least 1 second!");
+          return;
+        }
+
+        timerHours = h;
+        timerMinutes = m;
+        timerSeconds = s;
+        timerDuration = (h * 3600 + m * 60 + s) * 1000;
+
+        // Save to server
+        fetch(`${SERVER_URL}/api/timer-duration`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ hours: h, minutes: m, seconds: s }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("✅ Timer duration saved:", data);
+            localStorage.setItem("timer_hours", h);
+            localStorage.setItem("timer_minutes", m);
+            localStorage.setItem("timer_seconds", s);
+
+            timerSettingsContent.style.display = "none";
+            timerSettingsContent.classList.remove("active");
+            editTimerBtn.innerHTML = "<i class='fas fa-edit'></i>";
+
+            statusEl.textContent = `Timer set to ${formatTo2Digits(h)}h ${formatTo2Digits(m)}m ${formatTo2Digits(s)}s!`;
+            statusEl.className = "status safe";
+
+            setTimeout(() => {
+              if (!alertTriggered) updateStatusBasedOnTime();
+            }, 3000);
+          })
+          .catch((err) => {
+            console.error("❌ Failed to save timer:", err);
+            showAlert("Failed to update timer on server.");
+          });
+      }
+
+      function loadAutoSendMessage() {
+        const saved = localStorage.getItem("auto_send_message");
+        autoSendMessageInput.value = saved || "🚨 SAFETY CHECK-IN MISSED!\nምናልባት ችግር አጋጥሞኝ ሊሆን ስለሚችል እባክዎን ደውለው ደኅንነቴን ያረጋግጡ፡፡";
+        updateAutoSendMessageStats();
+      }
+
+      function saveAutoSendMessage() {
+        localStorage.setItem("auto_send_message", autoSendMessageInput.value);
+      }
+
+      function updateAutoSendMessageStats() {
+        const msg = autoSendMessageInput.value;
+        const chars = msg.length;
+        const words = msg.trim() === "" ? 0 : msg.trim().split(/\s+/).length;
+        autoSendCharCountEl.textContent = `${chars} character${chars !== 1 ? "s" : ""}`;
+        autoSendWordCountEl.textContent = `${words} word${words !== 1 ? "s" : ""}`;
+        saveAutoSendMessage();
+      }
+
+      function loadSignature() {
+        const saved = localStorage.getItem("message_signature");
+        signatureInput.value = saved || "Yonas Adane";
+        if (!saved) saveSignature();
+      }
+
+      function saveSignature() {
+        localStorage.setItem("message_signature", signatureInput.value);
+      }
+
+      function getSignature() {
+        return signatureInput.value.trim();
+      }
+
+      function getMessageWithSignature(message) {
+        const signature = getSignature();
+        if (signature) {
+          return `${message}\n\nFrom: ${signature}`;
+        }
+        return message;
+      }
+
+      function sendViaTelegram(message) {
+        if (contacts.length === 0) {
+          showAlert("Please add at least one emergency contact!");
+          return;
+        }
+
+        const telegramContacts = contacts.filter((c) => c.chatId && c.chatId.trim() !== "");
+        if (telegramContacts.length === 0) {
+          showAlert("No contacts have Telegram Chat IDs!");
+          return;
+        }
+
+        statusEl.textContent = "📡 Sending via Telegram...";
+        statusEl.className = "status warning";
+
+        const backendUrl = "https://safety-alert-5ut3.onrender.com/api/send-alert";
+        const contactData = telegramContacts.map((c) => ({
+          name: c.name,
+          chatId: c.chatId.trim(),
+        }));
+
+        fetch(backendUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: message, // ← already contains signature — backend should NOT modify it
+            contacts: contactData,
+          }),
+        })
+          .then((res) => {
+            if (!res.ok)
+              return res.json().then((err) => {
+                throw new Error(err.error || "Server error");
+              });
+            return res.json();
+          })
+          .then((data) => {
+            console.log("✅ Telegram sent:", data);
+            let msg = `✅ Alert sent to ${data.sent}/${telegramContacts.length} via Telegram!`;
+            if (data.failed > 0) msg += `\n⚠️ ${data.failed} failed`;
+            statusEl.innerHTML = msg.replace(/\n/g, "<br>");
+            statusEl.className = "status safe";
+
+            setTimeout(() => {
+              if (!alertTriggered) updateStatusBasedOnTime();
+            }, 5000);
+          })
+          .catch((err) => {
+            console.error("❌ Telegram send error:", err);
+            statusEl.innerHTML = `❌ Telegram failed: ${err.message}<br><small>Is backend server running?</small>`;
+            statusEl.className = "status critical";
+            setTimeout(() => {
+              if (!alertTriggered) updateStatusBasedOnTime();
+            }, 5000);
+          });
+      }
+
+      function autoSendAlert() {
+        if (!autoSendEnabled) return;
+
+        if (alertSentForCurrentDeadline) return;
+
+        alertSentForCurrentDeadline = true;
+        localStorage.setItem("alert_sent_for_deadline", "true");
+
+        const msg = autoSendMessageInput.value.trim() || "🚨 SAFETY CHECK-IN MISSED!\nምናልባት ችግር አጋጥሞኝ ሊሆን ስለሚችል እባክዎን ደውለው ደኅንነቴን ያረጋግጡ፡፡";
+        const finalMessage = getMessageWithSignature(msg);
+
+        console.log("%c🤖 AUTO-SEND TRIGGERED!", "color:#da121a;font-size:20px;font-weight:bold;");
+        console.log("Message with signature:", finalMessage);
+
+        sendViaTelegram(finalMessage);
+
+        setTimeout(() => {
+          deadline = Date.now() + timerDuration;
+          saveDeadline();
+          localStorage.removeItem("alert_sent_for_deadline");
+          alertSentForCurrentDeadline = false;
+
+          if (timerInterval) clearInterval(timerInterval);
+          startTimer();
+        }, 1000);
+      }
+
+      function sendEmergencyAlert() {
+        const msg = autoSendMessageInput.value.trim();
+        const finalMessage = getMessageWithSignature(msg);
+        sendViaTelegram(finalMessage);
+        hideSendModal();
+      }
+
+      function showSendModal() {
+        if (contacts.length === 0) {
+          showAlert("Please add at least one emergency contact!");
+          return;
+        }
+        const msg = autoSendMessageInput.value.trim();
+        modalMessagePreview.textContent = getMessageWithSignature(msg);
+        sendModal.style.display = "flex";
+      }
+
+      function hideSendModal() {
+        sendModal.style.display = "none";
+      }
+
+      function loadDeadline() {
+        fetch(`${SERVER_URL}/api/timer`)
+          .then((res) => res.json())
+          .then((data) => {
+            deadline = data.deadline;
+            timerDuration = data.timerDuration || timerDuration;
+
+            // If no deadline set on server, reset timer
+            if (!deadline) {
+              resetTimer();
+            } else {
+              // Start local countdown display (server handles actual alerts)
+              startTimer();
+            }
+          })
+          .catch((err) => {
+            console.error("❌ Failed to load timer from server:", err);
+            showAlert("Cannot connect to server. Please check your connection.");
+          });
+      }
+
+      function saveDeadline() {
+        localStorage.setItem("safety_deadline", deadline.toString());
+      }
+
+      function resetTimer() {
+        const resetBy = signatureInput.value.trim() || "Anonymous";
+        const duration = timerDuration;
+
+        fetch(`${SERVER_URL}/api/reset-timer`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ duration, resetBy }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("✅ Timer reset on server:", data);
+            statusEl.textContent = `Timer reset! Next check-in due in ${formatTo2Digits(timerHours)}h ${formatTo2Digits(timerMinutes)}m ${formatTo2Digits(timerSeconds)}s`;
+            statusEl.className = "status safe";
+
+            // Update local display (but server is source of truth)
+            deadline = data.deadline;
+            saveDeadline();
+            updateTimerDisplay();
+          })
+          .catch((err) => {
+            console.error("❌ Failed to reset timer:", err);
+            showAlert("Failed to reset timer. Is the server running?");
+          });
+      }
+
+      function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        updateTimerDisplay();
+        timerInterval = setInterval(updateTimerDisplay, 1000);
+      }
+
+      function updateTimerDisplay() {
+        if (alertTriggered) return;
+        const now = Date.now();
+        const realTimeLeft = deadline - now;
+        if (realTimeLeft <= 0) {
+          timerDisplay.textContent = "00:00:00";
+          progressBar.style.width = "100%";
+          clearInterval(timerInterval);
+          if (!alertSentForCurrentDeadline) {
+            autoSendAlert();
+          }
+          return;
+        }
+        const displaySeconds = Math.floor((realTimeLeft - 1) / 1000) + 1;
+        const hours = Math.floor(displaySeconds / 3600);
+        const minutes = Math.floor((displaySeconds % 3600) / 60);
+        const seconds = displaySeconds % 60;
+        timerDisplay.textContent = `${formatTo2Digits(hours)}:${formatTo2Digits(minutes)}:${formatTo2Digits(seconds)}`;
+        const elapsed = timerDuration - realTimeLeft;
+        const progress = elapsed / timerDuration;
+        progressBar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
+        updateStatusBasedOnTime(realTimeLeft);
+      }
+
+      function updateStatusBasedOnTime(realTimeLeft = null) {
+        if (realTimeLeft === null) {
+          realTimeLeft = deadline - Date.now();
+          if (realTimeLeft <= 0) return;
+        }
+
+        const totalSec = timerHours * 3600 + timerMinutes * 60 + timerSeconds;
+        const remainingSec = Math.floor(realTimeLeft / 1000);
+
+        if (remainingSec > totalSec * 0.5) {
+          updateStatus("safe", "All systems normal");
+        } else if (remainingSec > totalSec * 0.1) {
+          updateStatus("warning", "Check-in due soon");
+        } else {
+          const hoursLeft = Math.ceil(realTimeLeft / 3600000);
+          updateStatus("critical", `ALERT IMMINENT: ${hoursLeft} hours remaining!`);
+        }
+      }
+
+      function updateStatus(type, message) {
+        statusEl.className = `status ${type}`;
+        statusEl.textContent = message;
+
+        const container = document.querySelector(".container");
+        if (type === "critical") {
+          container.style.boxShadow = "0 0 40px rgba(218,18,26,0.75), 0 0 30px rgba(255,215,0,0.3)";
+        } else if (type === "warning") {
+          container.style.boxShadow = "0 0 30px rgba(252,221,9,0.5), 0 0 20px rgba(218,18,26,0.2)";
+        } else {
+          container.style.boxShadow = "0 10px 30px rgba(0,0,0,0.7), 0 0 25px rgba(252,221,9,0.25)";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", init);
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && !alertTriggered) {
+          if (timerInterval) clearInterval(timerInterval);
+          startTimer();
+        }
+      });
+
+      signatureInput.addEventListener("input", saveSignature);
+      autoSendMessageInput.addEventListener("input", updateAutoSendMessageStats);
+    </script>
+  </body>
+</html>
