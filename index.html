@@ -1522,9 +1522,7 @@
       }
 
       function resetTimer() {
-        // ✅ FIX: Remove msUntilNextSecond alignment - it causes the +1 second display issue
         deadline = Date.now() + timerDuration;
-
         saveDeadline();
         localStorage.removeItem("alert_sent_for_deadline");
         alertSentForCurrentDeadline = false;
@@ -1536,10 +1534,38 @@
         progressBar.style.width = "0%";
         progressBar.style.background = "linear-gradient(90deg, var(--green), var(--yellow), var(--red))";
 
+        // ✅ SYNC WITH BACKEND - OPTION 2
+        fetch("https://safety-alert-server.onrender.com/api/reset-timer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            resetBy: "User",
+            // ⚠️ Don't send duration here - let backend use its stored timerDuration
+            // This prevents accidental overrides of the global default
+          }),
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then((data) => {
+            console.log("✅ Timer reset on server:", data);
+            // Optional: Update deadline from server response to ensure perfect sync
+            if (data.deadline) {
+              deadline = data.deadline;
+              saveDeadline();
+            }
+          })
+          .catch((err) => {
+            console.error("❌ Failed to reset timer on server:", err);
+            showAlert("Warning: Could not sync with server. Timer may not be active.");
+            statusEl.textContent = "⚠️ Server sync failed - timer may not be active!";
+            statusEl.className = "status warning";
+          });
+
         // UI feedback
         statusEl.textContent = `Timer reset! Next check-in due in ${formatTo2Digits(timerHours)}h ${formatTo2Digits(timerMinutes)}m ${formatTo2Digits(timerSeconds)}s`;
         statusEl.className = "status safe";
-
         console.log("✅ Timer reset successfully");
       }
 

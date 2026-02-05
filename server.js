@@ -21,7 +21,7 @@ const bot = new TelegramBot(botToken);
 // In-memory storage (use MongoDB/PostgreSQL for production)
 let safetyState = {
   deadline: null,
-  timerDuration: 24 * 60 * 60 * 1000, // Default: 48 hours
+  timerDuration: 24 * 60 * 60 * 1000, // Default: 24 hours
   contacts: [],
   alertSentForCurrentDeadline: false,
   lastResetBy: null,
@@ -53,20 +53,22 @@ app.get("/api/timer", (req, res) => {
 app.post("/api/reset-timer", (req, res) => {
   const { duration, resetBy } = req.body;
 
-  if (duration) {
-    safetyState.timerDuration = duration;
-  }
+  // ✅ OPTION 2: Use temporary duration for this reset only
+  // Don't update safetyState.timerDuration unless explicitly changed via /api/timer-duration
+  const effectiveDuration = duration || safetyState.timerDuration;
 
-  safetyState.deadline = Date.now() + safetyState.timerDuration;
+  safetyState.deadline = Date.now() + effectiveDuration;
   safetyState.alertSentForCurrentDeadline = false;
   safetyState.lastResetBy = resetBy || "Anonymous";
 
   console.log(`✅ Timer reset by ${safetyState.lastResetBy}`);
+  console.log(`   Using duration: ${effectiveDuration / 60000} minutes`);
   console.log(`   Next deadline: ${new Date(safetyState.deadline)}`);
 
   res.json({
     success: true,
     deadline: safetyState.deadline,
+    duration: effectiveDuration,
     message: "Timer reset successfully",
   });
 });
