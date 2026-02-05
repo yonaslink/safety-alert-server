@@ -1616,59 +1616,82 @@
       }
 
       function resetTimer() {
-        const resetBy = signatureInput.value.trim() || "Anonymous";
-        const duration = timerDuration;
+        // CRITICAL: Snap deadline to next full second boundary
+        const now = Date.now();
+        const msUntilNextSecond = 1000 - (now % 1000);
+        deadline = now + msUntilNextSecond + timerDuration;
 
-        fetch("https://safety-alert-server.onrender.com/api/reset-timer", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ duration, resetBy }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("✅ Timer reset on server:", data);
-            statusEl.textContent = `Timer reset! Next check-in due in ${formatTo2Digits(timerHours)}h ${formatTo2Digits(timerMinutes)}m ${formatTo2Digits(timerSeconds)}s`;
-            statusEl.className = "status safe";
+        saveDeadline();
+        localStorage.removeItem("alert_sent_for_deadline");
+        alertSentForCurrentDeadline = false;
 
-            // Update local display
-            deadline = data.deadline;
-            saveDeadline();
-            updateTimerDisplay();
-          })
-          .catch((err) => {
-            console.error("❌ Failed to reset timer:", err);
-            showAlert("Failed to reset timer. Is the server running?");
-          });
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        startTimer();
+
+        // UI feedback
+        statusEl.textContent = `Timer reset! Next check-in due in ${formatTo2Digits(timerHours)}h ${formatTo2Digits(timerMinutes)}m ${formatTo2Digits(timerSeconds)}s`;
+        statusEl.className = "status safe";
+
+        console.log("✅ Timer reset to exactly:", new Date(deadline).toISOString());
       }
+
+      let lastUpdate = 0;
+      let animationFrameId = null;
 
       function startTimer() {
         if (timerInterval) clearInterval(timerInterval);
-        updateTimerDisplay();
-        timerInterval = setInterval(updateTimerDisplay, 1000);
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+        lastUpdate = Date.now();
+        alertTriggered = false;
+
+        function tick() {
+          const now = Date.now();
+          const elapsed = now - lastUpdate;
+
+          // Only update display every ~1000ms (prevents drift accumulation)
+          if (elapsed >= 1000) {
+            lastUpdate = now - (elapsed % 1000); // Snap to nearest second boundary
+            updateTimerDisplay();
+          }
+
+          // Check for deadline expiration (critical path - check every frame)
+          if (deadline && now >= deadline && !alertSentForCurrentDeadline) {
+            autoSendAlert();
+          }
+
+          animationFrameId = requestAnimationFrame(tick);
+        }
+
+        tick();
       }
 
       function updateTimerDisplay() {
-        if (alertTriggered) return;
-        const now = Date.now();
-        const realTimeLeft = deadline - now;
-        if (realTimeLeft <= 0) {
+        if (!deadline) {
           timerDisplay.textContent = "00:00:00";
-          progressBar.style.width = "100%";
-          clearInterval(timerInterval);
-          if (!alertSentForCurrentDeadline) {
-            autoSendAlert();
-          }
           return;
         }
-        const displaySeconds = Math.floor((realTimeLeft - 1) / 1000) + 1;
-        const hours = Math.floor(displaySeconds / 3600);
-        const minutes = Math.floor((displaySeconds % 3600) / 60);
-        const seconds = displaySeconds % 60;
+
+        const now = Date.now();
+        let timeLeft = Math.max(0, deadline - now);
+
+        // CRITICAL FIX: Always round UP to avoid premature expiration
+        const totalSeconds = Math.ceil(timeLeft / 1000);
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
         timerDisplay.textContent = `${formatTo2Digits(hours)}:${formatTo2Digits(minutes)}:${formatTo2Digits(seconds)}`;
-        const elapsed = timerDuration - realTimeLeft;
-        const progress = elapsed / timerDuration;
-        progressBar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
-        updateStatusBasedOnTime(realTimeLeft);
+
+        // Visual feedback
+        if (totalSeconds <= 10 && totalSeconds > 0) {
+          timerDisplay.classList.add("urgent");
+        } else {
+          timerDisplay.classList.remove("urgent");
+        }
+
+        updateStatusBasedOnTime();
       }
 
       function updateStatusBasedOnTime(realTimeLeft = null) {
