@@ -127,8 +127,13 @@
         font-size: 2rem;
         line-height: 0.5;
       }
+      #status {
+        height: 5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
       .status {
-        padding: 14px;
         border-radius: 20px;
         margin: 22px 0 18px;
         font-weight: 700;
@@ -195,8 +200,8 @@
         height: 100%;
         background: linear-gradient(90deg, var(--green), var(--yellow), var(--red));
         border-radius: 6px;
-        transition: width 0.6s ease;
         position: relative;
+        transition: background 0.3s ease; /* ✅ Only transition color */
       }
       .progress-bar::after {
         content: "";
@@ -1628,6 +1633,10 @@
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         startTimer();
 
+        // ✅ Reset progress bar immediately
+        progressBar.style.width = "0%";
+        progressBar.style.background = "linear-gradient(90deg, #ff4d4d, #ff8c00)";
+
         // UI feedback
         statusEl.textContent = `Timer reset! Next check-in due in ${formatTo2Digits(timerHours)}h ${formatTo2Digits(timerMinutes)}m ${formatTo2Digits(timerSeconds)}s`;
         statusEl.className = "status safe";
@@ -1669,13 +1678,14 @@
       function updateTimerDisplay() {
         if (!deadline) {
           timerDisplay.textContent = "00:00:00";
+          progressBar.style.width = "0%";
           return;
         }
 
         const now = Date.now();
-        let timeLeft = Math.max(0, deadline - now);
+        const timeLeft = Math.max(0, deadline - now);
 
-        // CRITICAL FIX: Always round UP to avoid premature expiration
+        // ✅ CRITICAL FIX: Use Math.ceil for display, but use actual ms for progress bar
         const totalSeconds = Math.ceil(timeLeft / 1000);
 
         const hours = Math.floor(totalSeconds / 3600);
@@ -1684,11 +1694,22 @@
 
         timerDisplay.textContent = `${formatTo2Digits(hours)}:${formatTo2Digits(minutes)}:${formatTo2Digits(seconds)}`;
 
-        // Visual feedback
-        if (totalSeconds <= 10 && totalSeconds > 0) {
-          timerDisplay.classList.add("urgent");
-        } else {
-          timerDisplay.classList.remove("urgent");
+        // ✅ PROGRESS BAR FIX: Calculate percentage based on actual milliseconds
+        if (timerDuration > 0) {
+          const percentComplete = Math.min(100, (1 - timeLeft / timerDuration) * 100);
+          progressBar.style.width = percentComplete.toFixed(2) + "%";
+
+          // Color changes based on urgency
+          if (totalSeconds <= 10 && totalSeconds > 0) {
+            progressBar.style.background = "linear-gradient(90deg, #ff0000, #ff4500)";
+            timerDisplay.classList.add("urgent");
+          } else if (totalSeconds <= 30) {
+            progressBar.style.background = "linear-gradient(90deg, #ff4d4d, #ff8c00)";
+            timerDisplay.classList.remove("urgent");
+          } else {
+            progressBar.style.background = "linear-gradient(90deg, #ff4d4d, #ff8c00)";
+            timerDisplay.classList.remove("urgent");
+          }
         }
 
         updateStatusBasedOnTime();
