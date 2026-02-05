@@ -837,7 +837,7 @@
             <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 15px; text-align: center">Set your preferred check-in interval (HH:MM:SS)</p>
             <div class="timer-inputs">
               <div class="timer-input-group">
-                <input type="text" id="timer-hours" maxlength="3" value="00" />
+                <input type="text" id="timer-hours" maxlength="2" value="00" />
                 <label>Hours</label>
               </div>
               <div class="timer-input-group">
@@ -982,9 +982,9 @@
       let alertSentForCurrentDeadline = false;
       let contacts = [];
       let autoSendEnabled = true;
-      let timerHours = 0;
+      let timerHours = 48;
       let timerMinutes = 0;
-      let timerSeconds = 60;
+      let timerSeconds = 0;
       let timerDuration = 0;
       let confirmCallback = null;
       let alertCallback = null;
