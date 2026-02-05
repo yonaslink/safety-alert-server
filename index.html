@@ -1549,7 +1549,6 @@
 
       function autoSendAlert() {
         if (!autoSendEnabled) return;
-
         if (alertSentForCurrentDeadline) return;
 
         alertSentForCurrentDeadline = true;
@@ -1563,14 +1562,14 @@
 
         sendViaTelegram(finalMessage);
 
+        // ✅ THIS IS CRITICAL - Resets timer after alert
         setTimeout(() => {
           deadline = Date.now() + timerDuration;
           saveDeadline();
           localStorage.removeItem("alert_sent_for_deadline");
           alertSentForCurrentDeadline = false;
-
           if (timerInterval) clearInterval(timerInterval);
-          startTimer();
+          startTimer(); // ← Restarts the loop
         }, 1000);
       }
 
@@ -1621,10 +1620,8 @@
       }
 
       function resetTimer() {
-        // CRITICAL: Snap deadline to next full second boundary
-        const now = Date.now();
-        const msUntilNextSecond = 1000 - (now % 1000);
-        deadline = now + msUntilNextSecond + timerDuration;
+        // ✅ FIX: Remove msUntilNextSecond alignment - it causes the +1 second display issue
+        deadline = Date.now() + timerDuration;
 
         saveDeadline();
         localStorage.removeItem("alert_sent_for_deadline");
@@ -1633,15 +1630,15 @@
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         startTimer();
 
-        // ✅ Reset progress bar immediately
+        // Reset progress bar
         progressBar.style.width = "0%";
-        progressBar.style.background = "linear-gradient(90deg, #ff4d4d, #ff8c00)";
+        progressBar.style.background = "linear-gradient(90deg, var(--green), var(--yellow), var(--red))";
 
         // UI feedback
         statusEl.textContent = `Timer reset! Next check-in due in ${formatTo2Digits(timerHours)}h ${formatTo2Digits(timerMinutes)}m ${formatTo2Digits(timerSeconds)}s`;
         statusEl.className = "status safe";
 
-        console.log("✅ Timer reset to exactly:", new Date(deadline).toISOString());
+        console.log("✅ Timer reset successfully");
       }
 
       let lastUpdate = 0;
@@ -1651,28 +1648,13 @@
         if (timerInterval) clearInterval(timerInterval);
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
 
-        lastUpdate = Date.now();
         alertTriggered = false;
 
-        function tick() {
-          const now = Date.now();
-          const elapsed = now - lastUpdate;
+        // ✅ Use setInterval for 1-second updates (simpler & works great)
+        timerInterval = setInterval(updateTimerDisplay, 1000);
 
-          // Only update display every ~1000ms (prevents drift accumulation)
-          if (elapsed >= 1000) {
-            lastUpdate = now - (elapsed % 1000); // Snap to nearest second boundary
-            updateTimerDisplay();
-          }
-
-          // Check for deadline expiration (critical path - check every frame)
-          if (deadline && now >= deadline && !alertSentForCurrentDeadline) {
-            autoSendAlert();
-          }
-
-          animationFrameId = requestAnimationFrame(tick);
-        }
-
-        tick();
+        // Initial update
+        updateTimerDisplay();
       }
 
       function updateTimerDisplay() {
@@ -1685,7 +1667,7 @@
         const now = Date.now();
         const timeLeft = Math.max(0, deadline - now);
 
-        // ✅ CRITICAL FIX: Use Math.ceil for display, but use actual ms for progress bar
+        // ✅ CRITICAL FIX: Always round UP to avoid premature expiration
         const totalSeconds = Math.ceil(timeLeft / 1000);
 
         const hours = Math.floor(totalSeconds / 3600);
@@ -1713,6 +1695,11 @@
         }
 
         updateStatusBasedOnTime();
+
+        // ✅ CRITICAL: Check if timer expired and trigger alert
+        if (now >= deadline && !alertSentForCurrentDeadline) {
+          autoSendAlert();
+        }
       }
 
       function updateStatusBasedOnTime(realTimeLeft = null) {
