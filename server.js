@@ -21,7 +21,7 @@ const bot = new TelegramBot(botToken);
 // In-memory storage (use MongoDB/PostgreSQL for production)
 let safetyState = {
   deadline: null,
-  timerDuration: 5 * 60 * 1000, // Default: 5 minutes
+  timerDuration: 24 * 60 * 60 * 1000, // Default: 48 hours
   contacts: [],
   alertSentForCurrentDeadline: false,
   lastResetBy: null,
