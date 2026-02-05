@@ -105,6 +105,7 @@
           0 0 15px rgba(252, 221, 9, 0.7),
           0 5px 20px rgba(0, 0, 0, 0.8);
         color: white;
+        opacity: 0.25;
         font-family: "Courier New", monospace;
       }
       .timer-label {
@@ -825,7 +826,7 @@
         <img src="icon.png" alt="logo" class="logo" />
         <h1>Safety Check-in</h1>
         <p>Tap "I'm Alive!" within your set time to confirm your safety</p>
-        <p class="auto-send-badge">🤖 Auto-Send Enabled: Alerts sent automatically when timer expires</p>
+        <p class="auto-send-badge">🤖 Auto-Send Enabled: Alerts will be sent automatically when timer expires</p>
       </div>
       <div class="timer-container">
         <div class="status safe" id="status">All systems normal</div>
@@ -1124,16 +1125,24 @@
         // Timer Editor Input Formatting
         timerHoursInput.addEventListener("input", (e) => {
           let value = e.target.value.replace(/[^0-9]/g, "");
-          if (value === "") {
-            e.target.value = "";
-            return;
+          if (value === "") return;
+          let num = parseInt(value) || 0;
+          if (num > 99) {
+            e.target.value = "99";
+          } else {
+            e.target.value = value; // Don't format yet, let user type
           }
-          let num = Math.min(parseInt(value) || 0, 99);
-          e.target.value = formatTo2Digits(num);
         });
+
         timerHoursInput.addEventListener("blur", (e) => {
           let value = e.target.value.replace(/[^0-9]/g, "");
           let num = value === "" ? 0 : Math.min(parseInt(value), 99);
+          e.target.value = formatTo2Digits(num);
+        });
+
+        timerMinutesInput.addEventListener("blur", (e) => {
+          let value = e.target.value.replace(/[^0-9]/g, "");
+          let num = value === "" ? 0 : Math.min(parseInt(value), 59);
           e.target.value = formatTo2Digits(num);
         });
 
