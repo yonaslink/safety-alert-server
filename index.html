@@ -486,49 +486,6 @@
         color: #fff;
         border: none;
       }
-      .signature-container {
-        padding: 28px 25px;
-        background: rgba(35, 25, 45, 0.92);
-        border-top: 2px solid var(--purple);
-        position: relative;
-        margin-top: 20px;
-        border-radius: 20px;
-      }
-      .signature-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: var(--purple);
-        font-size: 1.45rem;
-        font-weight: 700;
-      }
-      .signature-title svg {
-        width: 28px;
-        height: 28px;
-        fill: none;
-        stroke: var(--purple);
-        stroke-width: 1.8;
-      }
-      .signature-description {
-        color: #e8d5ff;
-        font-size: 0.9rem;
-        line-height: 1.5;
-      }
-      .signature-input {
-        width: 100%;
-        padding: 14px;
-        border-radius: 14px;
-        border: 2px solid rgba(139, 92, 246, 0.3);
-        background: rgba(15, 30, 15, 0.8);
-        color: white;
-        font-size: 1.1rem;
-        transition: border-color 0.3s;
-      }
-      .signature-input:focus {
-        outline: none;
-        border-color: var(--purple);
-        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
-      }
       .timer-settings-container {
         padding: 28px 25px;
         background: rgba(25, 35, 45, 0.92);
@@ -910,31 +867,13 @@
             <p class="auto-send-description">✍️ This message will be sent automatically when the timer expires</p>
             <div class="contact-form">
               <textarea class="form-control" id="auto-send-message" placeholder="Write your custom alert message here..." rows="5" style="min-height: 120px; resize: vertical">
-🚨 SAFETY CHECK-IN MISSED!
-ምናልባት ችግር አጋጥሞኝ ሊሆን ስለሚችል እባክዎን ደውለው ደኅንነቴን ያረጋግጡ፡፡</textarea
-              >
+                🚨 SAFETY CHECK-IN MISSED!
+                ምናልባት ችግር አጋጥሞኝ ሊሆን ስለሚችል እባክዎን ደውለው ደኅንነቴን ያረጋግጡ፡፡
+              </textarea>
               <div class="auto-send-stats">
                 <span id="auto-send-char-count">78 characters</span>
                 <span id="auto-send-word-count">11 words</span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="signature-container">
-          <div class="relatives-header">
-            <div class="signature-title">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 22s-8-4-8-10V5l8-3 8 3v7c0 6-8 10-8 10z" />
-              </svg>
-              Message Signature
-            </div>
-            <button class="edit-btn" id="edit-signature-btn"><i class="fas fa-edit"></i></button>
-          </div>
-          <div class="signature-content collapsible-section" id="signature-content">
-            <p class="signature-description">✍️ This signature will be appended to all sent messages</p>
-            <div class="contact-form">
-              <input type="text" id="signature-input" class="signature-input" placeholder="Your signature (e.g., - John Doe)" value="Yonas Adane" />
             </div>
           </div>
         </div>
@@ -1010,7 +949,6 @@
       const autoSendMessageInput = document.getElementById("auto-send-message");
       const autoSendCharCountEl = document.getElementById("auto-send-char-count");
       const autoSendWordCountEl = document.getElementById("auto-send-word-count");
-      const signatureInput = document.getElementById("signature-input");
       const timerHoursInput = document.getElementById("timer-hours");
       const timerMinutesInput = document.getElementById("timer-minutes");
       const timerSecondsInput = document.getElementById("timer-seconds");
@@ -1024,8 +962,6 @@
       const timerSettingsContent = document.getElementById("timer-settings-content");
       const editAutoSendBtn = document.getElementById("edit-auto-send-btn");
       const autoSendContent = document.getElementById("auto-send-content");
-      const editSignatureBtn = document.getElementById("edit-signature-btn");
-      const signatureContent = document.getElementById("signature-content");
 
       // Custom Modal Elements
       const alertModal = document.getElementById("alert-modal");
@@ -1097,7 +1033,6 @@
         renderContacts();
         loadTimerSettings();
         loadAutoSendMessage();
-        loadSignature();
         loadDeadline();
         startTimer();
         updateAutoSendMessageStats();
@@ -1105,7 +1040,6 @@
         contactForm.style.display = "none";
         timerSettingsContent.style.display = "none";
         autoSendContent.style.display = "none";
-        signatureContent.style.display = "none";
 
         resetBtn.addEventListener("click", resetTimer);
         addContactBtn.addEventListener("click", toggleContactForm);
@@ -1116,7 +1050,6 @@
         confirmSendBtn.addEventListener("click", sendEmergencyAlert);
         editTimerBtn.addEventListener("click", toggleTimerSettings);
         editAutoSendBtn.addEventListener("click", toggleAutoSendEditor);
-        editSignatureBtn.addEventListener("click", toggleSignatureEditor);
 
         sendModal.addEventListener("click", (e) => {
           if (e.target === sendModal) hideSendModal();
@@ -1262,18 +1195,6 @@
           autoSendContent.style.display = "none";
           autoSendContent.classList.remove("active");
           editAutoSendBtn.innerHTML = "<i class='fas fa-edit'></i>";
-        }
-      }
-
-      function toggleSignatureEditor() {
-        if (signatureContent.style.display === "none" || signatureContent.style.display === "") {
-          signatureContent.style.display = "block";
-          signatureContent.classList.add("active");
-          editSignatureBtn.innerHTML = "<i class='fas fa-check'></i>";
-        } else {
-          signatureContent.style.display = "none";
-          signatureContent.classList.remove("active");
-          editSignatureBtn.innerHTML = "<i class='fas fa-edit'></i>";
         }
       }
 
@@ -1473,28 +1394,6 @@
         saveAutoSendMessage();
       }
 
-      function loadSignature() {
-        const saved = localStorage.getItem("message_signature");
-        signatureInput.value = saved || "Yonas Adane";
-        if (!saved) saveSignature();
-      }
-
-      function saveSignature() {
-        localStorage.setItem("message_signature", signatureInput.value);
-      }
-
-      function getSignature() {
-        return signatureInput.value.trim();
-      }
-
-      function getMessageWithSignature(message) {
-        const signature = getSignature();
-        if (signature) {
-          return `${message}\n\nFrom: ${signature}`;
-        }
-        return message;
-      }
-
       function sendViaTelegram(message) {
         if (contacts.length === 0) {
           showAlert("Please add at least one emergency contact!");
@@ -1520,7 +1419,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            message: message, // ← already contains signature — backend should NOT modify it
+            message: message,
             contacts: contactData,
           }),
         })
@@ -1560,12 +1459,11 @@
         localStorage.setItem("alert_sent_for_deadline", "true");
 
         const msg = autoSendMessageInput.value.trim() || "🚨 SAFETY CHECK-IN MISSED!\nምናልባት ችግር አጋጥሞኝ ሊሆን ስለሚችል እባክዎን ደውለው ደኅንነቴን ያረጋግጡ፡፡";
-        const finalMessage = getMessageWithSignature(msg);
 
         console.log("%c🤖 AUTO-SEND TRIGGERED!", "color:#da121a;font-size:20px;font-weight:bold;");
-        console.log("Message with signature:", finalMessage);
+        console.log("Message:", msg);
 
-        sendViaTelegram(finalMessage);
+        sendViaTelegram(msg);
 
         // ✅ THIS IS CRITICAL - Resets timer after alert
         setTimeout(() => {
@@ -1580,8 +1478,7 @@
 
       function sendEmergencyAlert() {
         const msg = autoSendMessageInput.value.trim();
-        const finalMessage = getMessageWithSignature(msg);
-        sendViaTelegram(finalMessage);
+        sendViaTelegram(msg);
         hideSendModal();
       }
 
@@ -1591,7 +1488,7 @@
           return;
         }
         const msg = autoSendMessageInput.value.trim();
-        modalMessagePreview.textContent = getMessageWithSignature(msg);
+        modalMessagePreview.textContent = msg;
         sendModal.style.display = "flex";
       }
 
@@ -1749,7 +1646,6 @@
         }
       });
 
-      signatureInput.addEventListener("input", saveSignature);
       autoSendMessageInput.addEventListener("input", updateAutoSendMessageStats);
     </script>
   </body>

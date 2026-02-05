@@ -161,12 +161,9 @@ function checkTimer() {
     safetyState.alertSentForCurrentDeadline = true;
 
     // Get message from contacts (or use default)
-    const defaultMessage = `🚨 SAFETY CHECK-IN MISSED!\nምናልባት ችግር አጋጥሞኝ ሊሆን ስለሚችል እባክዎን ደውለው ደኅንነቴን ያረጋግጡ፡፡`;
-    const signature = "Yonas Adane";
+    const defaultMessage = `🚨 SAFETY CHECK-IN MISSED!\n\nምናልባት ችግር አጋጥሞኝ ሊሆን ስለሚችል እባክዎን ደውለው ደኅንነቴን ያረጋግጡ፡፡`;
 
-    const finalMessage = `${defaultMessage}\nFrom: ${signature}`;
-
-    sendAlertToContacts(finalMessage).then((result) => {
+    sendAlertToContacts(defaultMessage).then((result) => {
       console.log(`📊 Alert results: ${result.sent}/${result.total} sent, ${result.failed} failed`);
 
       // Auto-reset timer for next cycle (recurring alerts)
